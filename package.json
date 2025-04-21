@@ -1,0 +1,24 @@
+{
+  "name": "changelogai-app",
+  "version": "1.0.0",
+  "description": "AI-powered changelog generator",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": ["changelog", "ai", "generator"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest"
+  }
+}
