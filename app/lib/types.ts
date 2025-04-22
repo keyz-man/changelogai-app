@@ -8,6 +8,7 @@ export interface Commit {
 export interface Project {
   id: string;
   name: string;
+  description: string;
   repositoryUrl: string;
   commits: Commit[];
   createdAt: string;
