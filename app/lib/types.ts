@@ -18,6 +18,7 @@ export interface Changelog {
   id: string;
   projectId: string;
   title: string;
+  version: string;
   content: string;
   fromDate: string;
   toDate: string;

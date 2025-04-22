@@ -36,6 +36,7 @@ model Changelog {
   id        String   @id @default(uuid())
   projectId String
   title     String
+  version   String
   content   String
   fromDate  DateTime
   toDate    DateTime

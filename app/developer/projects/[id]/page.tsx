@@ -5,17 +5,19 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
-import { Project, Commit } from '@/app/lib/types';
+import GenerateChangelogForm from '@/app/components/GenerateChangelogForm';
+import { Project, Commit, Changelog } from '@/app/lib/types';
 
 export default function ProjectDetail() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [changelogs, setChangelogs] = useState([]);
+  const [changelogs, setChangelogs] = useState<Changelog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('commits'); // 'commits' or 'changelogs'
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isGenerateFormVisible, setIsGenerateFormVisible] = useState(false);
 
   // Force a refresh
   const refreshProject = () => {
@@ -60,13 +62,34 @@ export default function ProjectDetail() {
     fetchProjectDetails();
   }, [params, refreshTrigger]);
 
-  const generateChangelog = () => {
-    // This will be implemented later with AI integration
-    alert('Changelog generation will be implemented in a future update');
+  const toggleGenerateForm = () => {
+    // When switching to changelogs tab, hide the form
+    if (activeTab === 'changelogs') {
+      setIsGenerateFormVisible(false);
+    } else {
+      setIsGenerateFormVisible(!isGenerateFormVisible);
+    }
+  };
+
+  const handleChangelogGenerated = () => {
+    toggleGenerateForm();
+    refreshProject();
+  };
+
+  // When changing tabs, hide the generate form
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === 'changelogs') {
+      setIsGenerateFormVisible(false);
+    }
   };
 
   const goBackToProjects = () => {
     router.push('/developer');
+  };
+
+  const viewChangelogDetails = (changelogId: string) => {
+    router.push(`/developer/changelogs/${changelogId}`);
   };
 
   return (
@@ -143,7 +166,7 @@ export default function ProjectDetail() {
 
             <div className="tabs" style={{ marginBottom: '20px' }}>
               <button
-                onClick={() => setActiveTab('commits')}
+                onClick={() => handleTabChange('commits')}
                 style={{ 
                   padding: '10px 20px', 
                   marginRight: '10px',
@@ -154,7 +177,7 @@ export default function ProjectDetail() {
                 Commits
               </button>
               <button
-                onClick={() => setActiveTab('changelogs')}
+                onClick={() => handleTabChange('changelogs')}
                 style={{ 
                   padding: '10px 20px',
                   background: activeTab === 'changelogs' ? 'var(--primary-purple)' : '#e0e0e0',
@@ -165,11 +188,22 @@ export default function ProjectDetail() {
               </button>
             </div>
 
+            {isGenerateFormVisible && (
+              <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+                <GenerateChangelogForm 
+                  project={project} 
+                  onChangelogGenerated={handleChangelogGenerated} 
+                />
+              </div>
+            )}
+
             {activeTab === 'commits' ? (
               <div className="commits-tab">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <h3>Commits</h3>
-                  <button onClick={generateChangelog}>Generate Changelog</button>
+                  <button onClick={toggleGenerateForm}>
+                    {isGenerateFormVisible ? 'Cancel Generation' : 'Generate Changelog'}
+                  </button>
                 </div>
                 
                 <div className="commits-list">
@@ -201,14 +235,13 @@ export default function ProjectDetail() {
               </div>
             ) : (
               <div className="changelogs-tab">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <h3>Changelogs</h3>
-                  <button onClick={generateChangelog}>Generate New Changelog</button>
                 </div>
                 
                 {changelogs.length > 0 ? (
                   <div className="changelogs-list">
-                    {changelogs.map((changelog: any) => (
+                    {changelogs.map((changelog) => (
                       <div 
                         key={changelog.id}
                         style={{ 
@@ -218,21 +251,35 @@ export default function ProjectDetail() {
                           borderRadius: '5px'
                         }}
                       >
-                        <h4>{changelog.title}</h4>
-                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                          {new Date(changelog.fromDate).toLocaleDateString()} to {new Date(changelog.toDate).toLocaleDateString()}
-                        </p>
-                        <div style={{ whiteSpace: 'pre-wrap' }}>
-                          {changelog.content}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <div>
+                            <h4 style={{ marginBottom: '5px' }}>{changelog.title}</h4>
+                            <div style={{ fontSize: '14px', color: '#666' }}>Version {changelog.version}</div>
+                          </div>
+                          <div>
+                            <button
+                              onClick={() => viewChangelogDetails(changelog.id)}
+                              style={{ 
+                                padding: '8px 12px',
+                                background: '#3067cc',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Learn more
+                            </button>
+                          </div>
                         </div>
-                        <p style={{ fontSize: '12px', color: '#999', marginTop: '15px' }}>
-                          Generated on {new Date(changelog.createdAt).toLocaleString()}
+                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+                          Generated on {new Date(changelog.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p>No changelogs have been generated yet. Create your first changelog by selecting commits.</p>
+                  <p>No changelogs have been generated yet. Create your first changelog by selecting commits from the Commits tab.</p>
                 )}
               </div>
             )}

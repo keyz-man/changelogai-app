@@ -109,6 +109,7 @@ export async function getChangelogs(): Promise<Changelog[]> {
     id: changelog.id,
     projectId: changelog.projectId,
     title: changelog.title,
+    version: changelog.version,
     content: changelog.content,
     fromDate: changelog.fromDate.toISOString(),
     toDate: changelog.toDate.toISOString(),
@@ -125,6 +126,7 @@ export async function getProjectChangelogs(projectId: string): Promise<Changelog
     id: changelog.id,
     projectId: changelog.projectId,
     title: changelog.title,
+    version: changelog.version,
     content: changelog.content,
     fromDate: changelog.fromDate.toISOString(),
     toDate: changelog.toDate.toISOString(),
@@ -132,11 +134,31 @@ export async function getProjectChangelogs(projectId: string): Promise<Changelog
   }));
 }
 
+export async function getChangelog(id: string): Promise<Changelog | null> {
+  const changelog = await prisma.changelog.findUnique({
+    where: { id },
+  });
+  
+  if (!changelog) return null;
+  
+  return {
+    id: changelog.id,
+    projectId: changelog.projectId,
+    title: changelog.title,
+    version: changelog.version,
+    content: changelog.content,
+    fromDate: changelog.fromDate.toISOString(),
+    toDate: changelog.toDate.toISOString(),
+    createdAt: changelog.createdAt.toISOString(),
+  };
+}
+
 export async function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'>): Promise<Changelog> {
   const newChangelog = await prisma.changelog.create({
     data: {
       projectId: changelog.projectId,
       title: changelog.title,
+      version: changelog.version,
       content: changelog.content,
       fromDate: new Date(changelog.fromDate),
       toDate: new Date(changelog.toDate),
@@ -147,6 +169,7 @@ export async function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'
     id: newChangelog.id,
     projectId: newChangelog.projectId,
     title: newChangelog.title,
+    version: newChangelog.version,
     content: newChangelog.content,
     fromDate: newChangelog.fromDate.toISOString(),
     toDate: newChangelog.toDate.toISOString(),
