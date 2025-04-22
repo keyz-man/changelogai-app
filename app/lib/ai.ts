@@ -64,63 +64,26 @@ Output format:
 }
 `;
 
-    // Make request to Gemini API
-    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.0-flash:generateContent', {
+    // In Next.js, we should use a server API route to make this call
+    // to avoid exposing the API key to the client
+    const response = await fetch('/api/ai/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.2,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096,
-        },
-      }),
+      body: JSON.stringify({ prompt }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Gemini API error: ${errorData.error.message || 'Unknown error'}`);
+      throw new Error(errorData.error || 'Failed to generate changelog with AI');
     }
 
     const data = await response.json();
     
-    // Parse the response
-    let textResponse = data.candidates[0].content.parts[0].text;
-    
-    // Check if response is in JSON format or needs parsing
-    let parsedResponse;
-    try {
-      // Try to parse if response is in JSON format
-      // Clean the text in case it contains markdown code blocks
-      textResponse = textResponse.replace(/```json|```/g, '').trim();
-      parsedResponse = JSON.parse(textResponse);
-    } catch (e) {
-      // If parsing fails, attempt to extract title and content manually
-      const titleMatch = textResponse.match(/["']title["']\s*:\s*["'](.+?)["']/);
-      const contentMatch = textResponse.match(/["']content["']\s*:\s*["'](.+?)["']/);
-      
-      parsedResponse = {
-        title: titleMatch ? titleMatch[1] : `${project.name} Update`,
-        content: contentMatch ? contentMatch[1].replace(/\\n/g, '\n') : textResponse,
-      };
-    }
-
     return {
-      title: parsedResponse.title,
-      content: parsedResponse.content,
+      title: data.title,
+      content: data.content,
     };
   } catch (error: any) {
     console.error('Error generating changelog with AI:', error);
