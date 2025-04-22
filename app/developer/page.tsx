@@ -13,6 +13,7 @@ export default function DeveloperDashboard() {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -20,6 +21,32 @@ export default function DeveloperDashboard() {
   // Force a refresh of projects
   const refreshProjects = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Delete project
+  const deleteProject = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+      
+      // Refresh the projects list after deletion
+      refreshProjects();
+    } catch (error: any) {
+      console.error('Error deleting project:', error);
+      alert(`Error deleting project: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Fetch projects from API
@@ -96,25 +123,43 @@ export default function DeveloperDashboard() {
                     borderRadius: '5px'
                   }}
                 >
-                  <h3 style={{ marginBottom: '10px' }}>
-                    <Link href={`/developer/projects/${project.id}`}>
-                      {project.name}
-                    </Link>
-                  </h3>
-                  {project.description && (
-                    <p style={{ marginBottom: '10px' }}>{project.description}</p>
-                  )}
-                  <p style={{ fontSize: '14px', color: '#666' }}>
-                    Repository: <a href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">
-                      {project.repositoryUrl}
-                    </a>
-                  </p>
-                  <p style={{ fontSize: '14px', color: '#666' }}>
-                    Added: {new Date(project.createdAt).toLocaleDateString()}
-                  </p>
-                  <p style={{ fontSize: '14px', marginTop: '5px' }}>
-                    {project.commits.length} commits
-                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h3 style={{ marginBottom: '10px' }}>
+                        <Link href={`/developer/projects/${project.id}`}>
+                          {project.name}
+                        </Link>
+                      </h3>
+                      {project.description && (
+                        <p style={{ marginBottom: '10px' }}>{project.description}</p>
+                      )}
+                      <p style={{ fontSize: '14px', color: '#666' }}>
+                        Repository: <a href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">
+                          {project.repositoryUrl}
+                        </a>
+                      </p>
+                      <p style={{ fontSize: '14px', color: '#666' }}>
+                        Added: {new Date(project.createdAt).toLocaleDateString()}
+                      </p>
+                      <p style={{ fontSize: '14px', marginTop: '5px' }}>
+                        {project.commits.length} commits
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => deleteProject(project.id)}
+                      disabled={isDeleting}
+                      style={{ 
+                        background: '#f44336', 
+                        color: 'white',
+                        padding: '5px 10px',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

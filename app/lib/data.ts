@@ -1,76 +1,155 @@
 // In-memory data store for development purposes
 // Note: In a production app, this would be replaced with a database
 
-import { Project, Changelog } from './types';
-
-// In-memory store
-let store: {
-  projects: Project[];
-  changelogs: Changelog[];
-} = {
-  projects: [],
-  changelogs: []
-};
-
-// Debug helper
-const logStore = () => {
-  console.log('Current store state:');
-  console.log('Projects:', store.projects.length);
-  console.log('Project IDs:', store.projects.map(p => p.id));
-};
+import { prisma } from './db';
+import { Project, Changelog, Commit } from './types';
 
 // Projects
-export function getProjects(): Project[] {
-  console.log('getProjects called, returning', store.projects.length, 'projects');
-  return [...store.projects];
-}
-
-export function getProject(id: string): Project | null {
-  console.log('getProject called with id:', id);
-  const project = store.projects.find(project => project.id === id);
-  console.log('Project found:', !!project);
-  return project || null;
-}
-
-export function addProject(project: Omit<Project, 'id' | 'createdAt'>) {
-  console.log('Adding new project:', project.name);
-  const newProject = {
-    ...project,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-  };
+export async function getProjects(): Promise<Project[]> {
+  const projects = await prisma.project.findMany({
+    include: {
+      commits: true,
+    },
+  });
   
-  store.projects.push(newProject);
-  console.log('Project added with ID:', newProject.id);
-  logStore();
-  return newProject;
+  return projects.map(project => ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    repositoryUrl: project.repositoryUrl,
+    commits: project.commits.map(commit => ({
+      id: commit.id,
+      message: commit.message,
+      author: commit.author,
+      date: commit.date.toISOString(),
+    })),
+    createdAt: project.createdAt.toISOString(),
+  }));
+}
+
+export async function getProject(id: string): Promise<Project | null> {
+  const project = await prisma.project.findUnique({
+    where: { id },
+    include: {
+      commits: true,
+    },
+  });
+  
+  if (!project) return null;
+  
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    repositoryUrl: project.repositoryUrl,
+    commits: project.commits.map(commit => ({
+      id: commit.id,
+      message: commit.message,
+      author: commit.author,
+      date: commit.date.toISOString(),
+    })),
+    createdAt: project.createdAt.toISOString(),
+  };
+}
+
+export async function addProject(project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> {
+  const { commits, ...projectData } = project;
+  
+  const newProject = await prisma.project.create({
+    data: {
+      name: projectData.name,
+      description: projectData.description,
+      repositoryUrl: projectData.repositoryUrl,
+      commits: {
+        create: commits.map(commit => ({
+          message: commit.message,
+          author: commit.author,
+          date: new Date(commit.date),
+        })),
+      },
+    },
+    include: {
+      commits: true,
+    },
+  });
+  
+  return {
+    id: newProject.id,
+    name: newProject.name,
+    description: newProject.description,
+    repositoryUrl: newProject.repositoryUrl,
+    commits: newProject.commits.map(commit => ({
+      id: commit.id,
+      message: commit.message,
+      author: commit.author,
+      date: commit.date.toISOString(),
+    })),
+    createdAt: newProject.createdAt.toISOString(),
+  };
+}
+
+// Implement delete project function
+export async function deleteProject(id: string): Promise<boolean> {
+  try {
+    await prisma.project.delete({
+      where: { id },
+    });
+    return true;
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    return false;
+  }
 }
 
 // Changelogs
-export function getChangelogs(): Changelog[] {
-  return [...store.changelogs];
-}
-
-export function getProjectChangelogs(projectId: string): Changelog[] {
-  return store.changelogs.filter(changelog => changelog.projectId === projectId);
-}
-
-export function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'>) {
-  const newChangelog = {
-    ...changelog,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-  };
+export async function getChangelogs(): Promise<Changelog[]> {
+  const changelogs = await prisma.changelog.findMany();
   
-  store.changelogs.push(newChangelog);
-  return newChangelog;
+  return changelogs.map(changelog => ({
+    id: changelog.id,
+    projectId: changelog.projectId,
+    title: changelog.title,
+    content: changelog.content,
+    fromDate: changelog.fromDate.toISOString(),
+    toDate: changelog.toDate.toISOString(),
+    createdAt: changelog.createdAt.toISOString(),
+  }));
 }
 
-// For development/testing purposes: reset the store
-export function resetStore() {
-  console.log('Resetting data store to empty state');
-  store = {
-    projects: [],
-    changelogs: []
+export async function getProjectChangelogs(projectId: string): Promise<Changelog[]> {
+  const changelogs = await prisma.changelog.findMany({
+    where: { projectId },
+  });
+  
+  return changelogs.map(changelog => ({
+    id: changelog.id,
+    projectId: changelog.projectId,
+    title: changelog.title,
+    content: changelog.content,
+    fromDate: changelog.fromDate.toISOString(),
+    toDate: changelog.toDate.toISOString(),
+    createdAt: changelog.createdAt.toISOString(),
+  }));
+}
+
+export async function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'>): Promise<Changelog> {
+  const newChangelog = await prisma.changelog.create({
+    data: {
+      projectId: changelog.projectId,
+      title: changelog.title,
+      content: changelog.content,
+      fromDate: new Date(changelog.fromDate),
+      toDate: new Date(changelog.toDate),
+    },
+  });
+  
+  return {
+    id: newChangelog.id,
+    projectId: newChangelog.projectId,
+    title: newChangelog.title,
+    content: newChangelog.content,
+    fromDate: newChangelog.fromDate.toISOString(),
+    toDate: newChangelog.toDate.toISOString(),
+    createdAt: newChangelog.createdAt.toISOString(),
   };
 } 

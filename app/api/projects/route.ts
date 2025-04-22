@@ -5,7 +5,7 @@ import { fetchCommits, fetchRepositoryDetails } from '@/app/lib/github';
 // GET handler to retrieve all projects
 export async function GET() {
   try {
-    const projects = getProjects();
+    const projects = await getProjects();
     return NextResponse.json({ projects });
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     ]);
     
     // Create the new project
-    const newProject = addProject({
+    const newProject = await addProject({
       // Use provided name or fallback to repo name
       name: name || repoDetails.name || 'Unnamed Project',
       description: description || repoDetails.description || '',
