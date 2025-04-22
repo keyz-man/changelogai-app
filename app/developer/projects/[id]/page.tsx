@@ -290,9 +290,6 @@ export default function ProjectDetail() {
                             </button>
                           </div>
                         </div>
-                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
-                          Generated on {new Date(changelog.createdAt).toLocaleDateString()}
-                        </p>
                       </div>
                     ))}
                   </div>
