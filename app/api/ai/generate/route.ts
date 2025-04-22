@@ -22,8 +22,6 @@ export async function POST(request: Request) {
       );
     }
     
-    console.log('Making request to Gemini 2.0 API');
-    
     // Make direct request to Google Gemini API - using Gemini 2.0 Flash
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -62,7 +60,6 @@ export async function POST(request: Request) {
     
     // Parse the response
     let textResponse = data.candidates[0].content.parts[0].text;
-    console.log('Raw Gemini response:', textResponse);
     
     // Check if response is in JSON format or needs parsing
     let parsedResponse;
@@ -72,7 +69,6 @@ export async function POST(request: Request) {
       textResponse = textResponse.replace(/```json|```/g, '').trim();
       parsedResponse = JSON.parse(textResponse);
     } catch (e) {
-      console.log('Error parsing JSON response, attempting manual extraction');
       // If parsing fails, attempt to extract title and content manually
       const titleMatch = textResponse.match(/["']title["']\s*:\s*["'](.+?)["']/);
       const contentMatch = textResponse.match(/["']content["']\s*:\s*["'](.+?)["']/);

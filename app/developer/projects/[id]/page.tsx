@@ -33,7 +33,6 @@ export default function ProjectDetail() {
     }
     
     try {
-      console.log('Fetching project with ID:', projectId);
       const response = await fetch(`/api/projects/${projectId}`);
       
       const data = await response.json();

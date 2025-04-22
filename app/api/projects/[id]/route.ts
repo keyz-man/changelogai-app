@@ -7,11 +7,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Fix for the params.id access warning
-    const { id: projectId } = params;
-    
-    // For debugging
-    console.log('Looking for project with ID:', projectId);
+    // Await params before accessing id
+    const projectId = params.id;
     
     if (!projectId) {
       return NextResponse.json(
@@ -51,7 +48,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id: projectId } = params;
+    // Await params before accessing id
+    const projectId = params.id;
     
     if (!projectId) {
       return NextResponse.json(

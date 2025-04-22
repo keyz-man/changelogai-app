@@ -29,7 +29,10 @@ export default function DeveloperDashboard() {
       
       const data = await response.json();
       
-      console.log('Fetched projects:', data.projects);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch projects');
+      }
+      
       setProjects(data.projects);
     } catch (error: any) {
       console.error('Error fetching projects:', error);
