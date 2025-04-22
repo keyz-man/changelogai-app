@@ -35,7 +35,7 @@ npm install
    - Sign in with your Google account
    - Make sure the model under Plan billing is Gemini 2.0 Flash
    - Click 'Create API key' button (top right)
-   - Select the Project you created earlier and create key
+   - Select the Project you created earlier
    - Create a new API key
    - Create a `.env.local` file in the project root
    - Add your API key: `GOOGLE_AI_API_KEY=your_api_key_here` (look at .env.example for reference)
@@ -56,17 +56,11 @@ The application uses Google's Gemini AI to generate professional changelogs from
 3. Select commits and date range
 4. Generate an AI-powered changelog with a single click
 
-## Database Setup
+## Database Info
 
 This project uses SQLite with Prisma ORM for data storage. Here's how it works:
 
 - **Local Database**: SQLite stores all data in a single file (`prisma/dev.db`)
-- **Prisma ORM**: Provides a type-safe API for database operations
-- **Data Models**: 
-  - Projects - stores repository information
-  - Commits - tracks commits for each project
-  - Changelogs - stores generated changelogs
-
 All data is persistently stored in the SQLite database.
 
 To view and edit the database directly:
@@ -81,8 +75,7 @@ This will open Prisma Studio in your browser at [http://localhost:5555](http://l
 
 **SQLite with Prisma**
 
-SQLite with Prisma in Next.js is a local database solution that works by:
-Local File Storage: SQLite stores your entire database in a single file within your project directory
+SQLite with Prisma in Next.js is a local database solution. SQLite stores your entire database in a single file within your project directory
 
 Development Advantages:
 - No database server configuration needed
@@ -101,4 +94,17 @@ This project leverages Next.js for several key advantages:
 
 - Google's Gemini API Free Tier offers a free tier with generous limits
 - Well-suited for text summarization tasks like changelog generation
-- Other option is local model usage which would require much greater memory to run the app
+- Another option of using free local model usage would require much greater memory to install model
+
+## AI tools used
+
+**claude-3.7-sonnet**
+
+- used to generate boiler plate codes and setup app structure
+- help in debugging
+
+## Limitations of the App (take-home purposes only)
+
+- Local DB: limited to a single machine (no distributed database)
+- No user authentication: so developers cannot login and manage only their own projects
+- Limitations on AI requests: using free tier of Gemini API so limitations in requests
