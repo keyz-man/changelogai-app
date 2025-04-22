@@ -175,4 +175,17 @@ export async function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'
     toDate: newChangelog.toDate.toISOString(),
     createdAt: newChangelog.createdAt.toISOString(),
   };
+}
+
+export async function deleteChangelog(id: string): Promise<boolean> {
+  try {
+    await prisma.changelog.delete({
+      where: { id },
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting changelog:', error);
+    return false;
+  }
 } 

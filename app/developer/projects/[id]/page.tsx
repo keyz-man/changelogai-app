@@ -16,51 +16,45 @@ export default function ProjectDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('commits'); // 'commits' or 'changelogs'
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isGenerateFormVisible, setIsGenerateFormVisible] = useState(false);
 
-  // Force a refresh
-  const refreshProject = () => {
-    setRefreshTrigger(prev => prev + 1);
+  const fetchProjectDetails = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    // Get the project ID from params
+    // params.id can be a string or string[] depending on the route
+    const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
+    
+    if (!projectId) {
+      setError('Project ID is missing');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      console.log('Fetching project with ID:', projectId);
+      const response = await fetch(`/api/projects/${projectId}`);
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch project details');
+      }
+      
+      setProject(data.project);
+      setChangelogs(data.changelogs);
+    } catch (error: any) {
+      console.error('Error fetching project details:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchProjectDetails = async () => {
-      setIsLoading(true);
-      setError('');
-      
-      // Get the project ID from params
-      // params.id can be a string or string[] depending on the route
-      const projectId = Array.isArray(params.id) ? params.id[0] : params.id;
-      
-      if (!projectId) {
-        setError('Project ID is missing');
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        console.log('Fetching project with ID:', projectId);
-        const response = await fetch(`/api/projects/${projectId}`);
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch project details');
-        }
-        
-        setProject(data.project);
-        setChangelogs(data.changelogs);
-      } catch (error: any) {
-        console.error('Error fetching project details:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProjectDetails();
-  }, [params, refreshTrigger]);
+  }, [params]);
 
   const toggleGenerateForm = () => {
     // When switching to changelogs tab, hide the form
@@ -73,7 +67,7 @@ export default function ProjectDetail() {
 
   const handleChangelogGenerated = () => {
     toggleGenerateForm();
-    refreshProject();
+    fetchProjectDetails();
   };
 
   // When changing tabs, hide the generate form
@@ -92,6 +86,29 @@ export default function ProjectDetail() {
     router.push(`/developer/changelogs/${changelogId}`);
   };
 
+  const deleteChangelog = async (changelogId: string) => {
+    if (!confirm('Are you sure you want to delete this changelog? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/changelogs/${changelogId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete changelog');
+      }
+      
+      // Refresh the project data to update the changelogs list
+      fetchProjectDetails();
+    } catch (error: any) {
+      console.error('Error deleting changelog:', error);
+      alert(`Failed to delete changelog: ${error.message}`);
+    }
+  };
+
   return (
     <main>
       <Header title="ChangelogAI" subtitle="Project Details" />
@@ -105,12 +122,6 @@ export default function ProjectDetail() {
           <div style={{ textAlign: 'center', padding: '50px 0', color: 'red' }}>
             <p>{error}</p>
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-              <button 
-                onClick={refreshProject} 
-                style={{ marginTop: '20px' }}
-              >
-                Retry
-              </button>
               <button 
                 onClick={goBackToProjects} 
                 style={{ background: '#666', marginTop: '20px' }}
@@ -134,12 +145,6 @@ export default function ProjectDetail() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>{project.name}</h2>
                 <div>
-                  <button 
-                    onClick={refreshProject} 
-                    style={{ marginRight: '10px', background: '#666' }}
-                  >
-                    Refresh
-                  </button>
                   <button 
                     onClick={goBackToProjects} 
                     style={{ background: '#666' }}
@@ -256,7 +261,7 @@ export default function ProjectDetail() {
                             <h4 style={{ marginBottom: '5px' }}>{changelog.title}</h4>
                             <div style={{ fontSize: '14px', color: '#666' }}>Version {changelog.version}</div>
                           </div>
-                          <div>
+                          <div style={{ display: 'flex', gap: '10px' }}>
                             <button
                               onClick={() => viewChangelogDetails(changelog.id)}
                               style={{ 
@@ -269,6 +274,19 @@ export default function ProjectDetail() {
                               }}
                             >
                               Learn more
+                            </button>
+                            <button
+                              onClick={() => deleteChangelog(changelog.id)}
+                              style={{ 
+                                padding: '8px 12px',
+                                background: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Delete
                             </button>
                           </div>
                         </div>

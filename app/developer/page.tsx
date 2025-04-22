@@ -12,15 +12,31 @@ export default function DeveloperDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   
-  // Force a refresh of projects
-  const refreshProjects = () => {
-    setRefreshTrigger(prev => prev + 1);
+  // Fetch projects from API
+  const fetchProjects = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/projects');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+      
+      const data = await response.json();
+      
+      console.log('Fetched projects:', data.projects);
+      setProjects(data.projects);
+    } catch (error: any) {
+      console.error('Error fetching projects:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Delete project
@@ -40,7 +56,7 @@ export default function DeveloperDashboard() {
       }
       
       // Refresh the projects list after deletion
-      refreshProjects();
+      fetchProjects();
     } catch (error: any) {
       console.error('Error deleting project:', error);
       alert(`Error deleting project: ${error.message}`);
@@ -49,35 +65,14 @@ export default function DeveloperDashboard() {
     }
   };
 
-  // Fetch projects from API
+  // Initial fetch of projects
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/projects');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch projects');
-        }
-        
-        const data = await response.json();
-        
-        console.log('Fetched projects:', data.projects);
-        setProjects(data.projects);
-      } catch (error: any) {
-        console.error('Error fetching projects:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProjects();
-  }, [refreshTrigger]);
+  }, []);
   
   // This callback is called after a new project is added
   const onProjectAdded = () => {
-    refreshProjects();
+    fetchProjects();
     closeModal();
   };
 
@@ -89,9 +84,6 @@ export default function DeveloperDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h2>Your Projects</h2>
           <div>
-            <button onClick={refreshProjects} style={{ marginRight: '10px', background: '#666' }}>
-              Refresh
-            </button>
             <button onClick={openModal}>Add New Project</button>
           </div>
         </div>
@@ -104,12 +96,6 @@ export default function DeveloperDashboard() {
           ) : error ? (
             <div style={{ textAlign: 'center', padding: '50px 0', color: 'red' }}>
               <p>{error}</p>
-              <button 
-                onClick={refreshProjects} 
-                style={{ marginTop: '20px' }}
-              >
-                Retry
-              </button>
             </div>
           ) : projects.length > 0 ? (
             <div className="projects-list">
