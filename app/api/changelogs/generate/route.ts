@@ -67,7 +67,7 @@ I will provide you with a list of commit messages from a Git repository.
 Your task is to analyze these commits and create a concise, well-organized changelog.
 
 Please follow these guidelines:
-1. For the title, use today's date in YYYY-MM-DD format.
+1. For the title, use last commits date in a readable format like "March 11, 2025" (full month name, day with no leading zero, and year).
 2. Organize the changes into categories like 'Features', 'Bug Fixes', 'Improvements', etc.
 3. Summarize similar commits together.
 4. Focus on user-facing changes, but include significant backend work.
@@ -80,7 +80,7 @@ ${commitMessages}
 
 Output format:
 {
-  "title": "${new Date().toISOString().split('T')[0]}",
+  "title": "${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}",
   "content": "The changelog content with sections and formatting"
 }
 `;

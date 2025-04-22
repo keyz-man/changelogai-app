@@ -205,38 +205,42 @@ export default function ProjectDetail() {
             {activeTab === 'commits' ? (
               <div className="commits-tab">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                  <h3>Commits</h3>
+                  {!isGenerateFormVisible && <h3>Commits</h3>}
                   <button onClick={toggleGenerateForm}>
                     {isGenerateFormVisible ? 'Cancel Generation' : 'Generate Changelog'}
                   </button>
                 </div>
                 
-                <div className="commits-list">
-                  {project.commits.length > 0 ? (
-                    project.commits.map((commit: Commit) => (
-                      <div 
-                        key={commit.id}
-                        style={{ 
-                          marginBottom: '15px', 
-                          padding: '15px', 
-                          border: '1px solid #eee',
-                          borderRadius: '5px'
-                        }}
-                      >
-                        <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>{commit.message}</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#666' }}>
-                          <span>By: {commit.author}</span>
-                          <span>{new Date(commit.date).toLocaleString()}</span>
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
-                          <code>{commit.id.substring(0, 7)}</code>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No commits available for this repository.</p>
-                  )}
-                </div>
+                {!isGenerateFormVisible && (
+                  <>
+                    <div className="commits-list">
+                      {project.commits.length > 0 ? (
+                        project.commits.map((commit: Commit) => (
+                          <div 
+                            key={commit.id}
+                            style={{ 
+                              marginBottom: '15px', 
+                              padding: '15px', 
+                              border: '1px solid #eee',
+                              borderRadius: '5px'
+                            }}
+                          >
+                            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>{commit.message}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#666' }}>
+                              <span>By: {commit.author}</span>
+                              <span>{new Date(commit.date).toLocaleString()}</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
+                              <code>{commit.id.substring(0, 7)}</code>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p>No commits available for this repository.</p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <div className="changelogs-tab">

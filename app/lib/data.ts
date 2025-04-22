@@ -119,10 +119,11 @@ export async function getChangelogs(): Promise<Changelog[]> {
 
 export async function getProjectChangelogs(projectId: string): Promise<Changelog[]> {
   const changelogs = await prisma.changelog.findMany({
-    where: { projectId },
+    where: { projectId }
   });
   
-  return changelogs.map(changelog => ({
+  // Map the changelogs to our return type
+  const mappedChangelogs = changelogs.map(changelog => ({
     id: changelog.id,
     projectId: changelog.projectId,
     title: changelog.title,
@@ -132,6 +133,21 @@ export async function getProjectChangelogs(projectId: string): Promise<Changelog
     toDate: changelog.toDate.toISOString(),
     createdAt: changelog.createdAt.toISOString(),
   }));
+  
+  // Sort by the date in the title ("August 19, 2020") - newest first
+  return mappedChangelogs.sort((a, b) => {
+    // Parse the dates from titles (they're in format like "August 19, 2020")
+    const dateA = new Date(a.title);
+    const dateB = new Date(b.title);
+    
+    // If dates are valid, sort by them (newest first)
+    if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+      return dateB.getTime() - dateA.getTime();
+    }
+    
+    // Fallback to creation date if title dates can't be parsed
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 }
 
 export async function getChangelog(id: string): Promise<Changelog | null> {

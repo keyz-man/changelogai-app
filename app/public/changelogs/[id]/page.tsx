@@ -83,11 +83,8 @@ export default function PublicChangelogDetail() {
           <div className="changelog-detail" style={{ maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ marginBottom: '30px' }}>
               <h1 style={{ marginBottom: '10px', fontSize: '32px' }}>{changelog.title}</h1>
-              <div style={{ marginBottom: '5px', fontSize: '18px', color: '#666' }}>
+              <div style={{ marginBottom: '20px', fontSize: '18px', color: '#666' }}>
                 Version {changelog.version}
-              </div>
-              <div style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-                {new Date(changelog.createdAt).toLocaleDateString()}
               </div>
               <button
                 onClick={goBack}

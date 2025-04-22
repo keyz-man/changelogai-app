@@ -150,9 +150,6 @@ export default function PublicProjectDetail() {
                           </button>
                         </div>
                       </div>
-                      <p style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
-                        {new Date(changelog.createdAt).toLocaleDateString()}
-                      </p>
                     </div>
                   ))}
                 </div>
