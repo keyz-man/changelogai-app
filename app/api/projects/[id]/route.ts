@@ -7,7 +7,19 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const projectId = params.id;
+    // Fix for the params.id access warning
+    const { id: projectId } = params;
+    
+    // For debugging
+    console.log('Looking for project with ID:', projectId);
+    
+    if (!projectId) {
+      return NextResponse.json(
+        { error: 'Project ID is required' },
+        { status: 400 }
+      );
+    }
+    
     const project = getProject(projectId);
     
     if (!project) {
@@ -25,7 +37,7 @@ export async function GET(
       changelogs
     });
   } catch (error) {
-    console.error(`Error fetching project ${params.id}:`, error);
+    console.error(`Error fetching project:`, error);
     return NextResponse.json(
       { error: 'Failed to fetch project' },
       { status: 500 }

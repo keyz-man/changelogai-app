@@ -12,16 +12,28 @@ let store: {
   changelogs: []
 };
 
+// Debug helper
+const logStore = () => {
+  console.log('Current store state:');
+  console.log('Projects:', store.projects.length);
+  console.log('Project IDs:', store.projects.map(p => p.id));
+};
+
 // Projects
 export function getProjects(): Project[] {
+  console.log('getProjects called, returning', store.projects.length, 'projects');
   return [...store.projects];
 }
 
 export function getProject(id: string): Project | null {
-  return store.projects.find(project => project.id === id) || null;
+  console.log('getProject called with id:', id);
+  const project = store.projects.find(project => project.id === id);
+  console.log('Project found:', !!project);
+  return project || null;
 }
 
 export function addProject(project: Omit<Project, 'id' | 'createdAt'>) {
+  console.log('Adding new project:', project.name);
   const newProject = {
     ...project,
     id: Date.now().toString(),
@@ -29,6 +41,8 @@ export function addProject(project: Omit<Project, 'id' | 'createdAt'>) {
   };
   
   store.projects.push(newProject);
+  console.log('Project added with ID:', newProject.id);
+  logStore();
   return newProject;
 }
 
@@ -54,6 +68,7 @@ export function addChangelog(changelog: Omit<Changelog, 'id' | 'createdAt'>) {
 
 // For development/testing purposes: reset the store
 export function resetStore() {
+  console.log('Resetting data store to empty state');
   store = {
     projects: [],
     changelogs: []

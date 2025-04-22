@@ -1,9 +1,14 @@
 import './globals.css';
 import { ReactNode } from 'react';
-import { resetStore } from './lib/data';
+import { resetStore, createTestData } from './lib/data';
 
 // Reset data store on server start (for development)
 resetStore();
+
+// Create test data for development
+if (process.env.NODE_ENV === 'development') {
+  createTestData();
+}
 
 export const metadata = {
   title: 'ChangelogAI - AI-Powered Changelog Generator',

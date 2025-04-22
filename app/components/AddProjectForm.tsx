@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 interface AddProjectFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onProjectAdded?: () => void;
 }
 
-export default function AddProjectForm({ isOpen, onClose }: AddProjectFormProps) {
+export default function AddProjectForm({ isOpen, onClose, onProjectAdded }: AddProjectFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,19 +47,22 @@ export default function AddProjectForm({ isOpen, onClose }: AddProjectFormProps)
         throw new Error(data.error || 'Failed to add repository');
       }
 
-      // Reset form and refresh projects
+      // Reset form
       setFormData({
         name: '',
         description: '',
         repositoryUrl: ''
       });
-      router.refresh();
       
-      // Close the modal
-      onClose();
-      
-      // Redirect to the project page
-      router.push(`/developer/projects/${data.project.id}`);
+      // Notify parent component that project was added
+      if (onProjectAdded) {
+        onProjectAdded();
+      } else {
+        onClose();
+        
+        // Only redirect if we're not using the callback
+        router.push(`/developer/projects/${data.project.id}`);
+      }
     } catch (error: any) {
       setError(error.message);
     } finally {

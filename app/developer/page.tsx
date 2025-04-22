@@ -12,9 +12,15 @@ export default function DeveloperDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  
+  // Force a refresh of projects
+  const refreshProjects = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Fetch projects from API
   useEffect(() => {
@@ -28,6 +34,8 @@ export default function DeveloperDashboard() {
         }
         
         const data = await response.json();
+        
+        console.log('Fetched projects:', data.projects);
         setProjects(data.projects);
       } catch (error: any) {
         console.error('Error fetching projects:', error);
@@ -38,7 +46,13 @@ export default function DeveloperDashboard() {
     };
 
     fetchProjects();
-  }, []);
+  }, [refreshTrigger]);
+  
+  // This callback is called after a new project is added
+  const onProjectAdded = () => {
+    refreshProjects();
+    closeModal();
+  };
 
   return (
     <main>
@@ -47,7 +61,12 @@ export default function DeveloperDashboard() {
       <section className="container" style={{ padding: '40px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h2>Your Projects</h2>
-          <button onClick={openModal}>Add New Project</button>
+          <div>
+            <button onClick={refreshProjects} style={{ marginRight: '10px', background: '#666' }}>
+              Refresh
+            </button>
+            <button onClick={openModal}>Add New Project</button>
+          </div>
         </div>
         
         <div style={{ marginBottom: '40px' }}>
@@ -59,7 +78,7 @@ export default function DeveloperDashboard() {
             <div style={{ textAlign: 'center', padding: '50px 0', color: 'red' }}>
               <p>{error}</p>
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={refreshProjects} 
                 style={{ marginTop: '20px' }}
               >
                 Retry
@@ -102,12 +121,13 @@ export default function DeveloperDashboard() {
           ) : (
             <div style={{ textAlign: 'center', padding: '50px 0' }}>
               <p style={{ marginBottom: '20px' }}>No projects yet. Get started by adding a GitHub repository.</p>
+              <button onClick={openModal}>Add Your First Project</button>
             </div>
           )}
         </div>
       </section>
 
-      <AddProjectForm isOpen={isModalOpen} onClose={closeModal} />
+      <AddProjectForm isOpen={isModalOpen} onClose={closeModal} onProjectAdded={onProjectAdded} />
       
       <Footer />
     </main>
