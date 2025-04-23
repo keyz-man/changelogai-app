@@ -108,3 +108,4 @@ This project leverages Next.js for several key advantages:
 - Local DB: limited to a single machine (no distributed database)
 - No user authentication: so developers cannot login and manage only their own projects
 - Limitations on AI requests: using free tier of Gemini API so limitations in requests
+- Limit on number of commits: only fetching last 100 commits to demonstrate
